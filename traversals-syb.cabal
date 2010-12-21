@@ -1,0 +1,20 @@
+Name:                traversals-syb
+Version:             0.1
+Synopsis:            Datatype-generic traversals
+License:             BSD3
+License-file:        LICENSE
+Author:              Pascal Hof
+Maintainer:          pascal.hof@tu-dortmund.de
+Stability:           Experimental
+Category:            Data
+Build-type:          Simple
+Cabal-version:       >=1.2
+
+Library
+  Exposed-modules:     Data.Traversal
+
+  hs-source-dirs: src
+  
+  Build-depends: base  >= 4,
+                 syb   
+  
