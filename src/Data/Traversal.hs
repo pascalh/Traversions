@@ -14,7 +14,7 @@ import Data.Generics.Aliases (mkQ)
 import Data.Generics.Schemes (everything)
 import Data.Data (Data(..),Typeable(..))
 import Data.Maybe (maybeToList)
-import Control.Monad (liftM2,liftM3)
+import Control.Monad (liftM2,liftM3,ap)
 
 traverse1 :: (Data t, Typeable b) => (b -> Maybe a) -> t -> [a]
 traverse1 f = everything (++) $ mkQ [] (maybeToList . f)
@@ -25,7 +25,7 @@ traverse2 :: (Data t, Typeable b)
   -> (b -> Maybe a2) 
   -> t -> [a]
 traverse2 c f g = everything (++) $ mkQ [] s where
-  s x = maybeToList $ liftM2 c (f x) (g x) 
+  s x = maybeToList $ return c `ap` f x `ap` g x 
 
 traverse3 :: (Data t, Typeable b) 
   => (a1 -> a2 -> a3 -> a) 
@@ -34,4 +34,4 @@ traverse3 :: (Data t, Typeable b)
   -> (b -> Maybe a3)
   -> t -> [a]
 traverse3 c f g h = everything (++) $ mkQ [] s where
-  s x = maybeToList $ liftM3 c (f x) (g x) (h x)  
+  s x = maybeToList $ return c `ap` f x `ap` g x `ap` h x  
