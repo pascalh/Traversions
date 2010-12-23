@@ -13,25 +13,30 @@ module Data.Traversal
 import Data.Generics.Aliases (mkQ)
 import Data.Generics.Schemes (everything)
 import Data.Data (Data(..),Typeable(..))
-import Data.Maybe (maybeToList)
-import Control.Monad (ap)
+import Control.Monad (MonadPlus(..),ap)
 
-traverse1 :: (Data t, Typeable b) => (b -> Maybe a) -> t -> [a]
-traverse1 f = everything (++) $ mkQ [] (maybeToList . f)
+-- |transforms maybe values to monadplus
+maybeToMplus :: MonadPlus m => Maybe a -> m a
+maybeToMplus Nothing  = mzero
+maybeToMplus (Just x) = return x
 
-traverse2 :: (Data t, Typeable b) 
+traverse1 :: (Data t, Typeable b,MonadPlus m) 
+          => (b -> Maybe a) -> t -> m a
+traverse1 f = everything mplus $ mkQ mzero (maybeToMplus . f)
+
+traverse2 :: (Data t, Typeable b,MonadPlus m) 
   => (a1 -> a2 -> a) 
   -> (b -> Maybe a1) 
   -> (b -> Maybe a2) 
-  -> t -> [a]
-traverse2 c f g = everything (++) $ mkQ [] s where
-  s x = maybeToList $ return c `ap` f x `ap` g x 
+  -> t -> m a
+traverse2 c f g = everything mplus $ mkQ mzero s where
+  s x = maybeToMplus $ return c `ap` f x `ap` g x 
 
-traverse3 :: (Data t, Typeable b) 
+traverse3 :: (Data t, Typeable b,MonadPlus m) 
   => (a1 -> a2 -> a3 -> a) 
   -> (b -> Maybe a1) 
   -> (b -> Maybe a2) 
   -> (b -> Maybe a3)
-  -> t -> [a]
-traverse3 c f g h = everything (++) $ mkQ [] s where
-  s x = maybeToList $ return c `ap` f x `ap` g x `ap` h x  
+  -> t -> m a
+traverse3 c f g h = everything mplus $ mkQ mzero s where
+  s x = maybeToMplus $ return c `ap` f x `ap` g x `ap` h x  
