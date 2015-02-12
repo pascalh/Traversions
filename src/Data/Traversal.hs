@@ -15,27 +15,23 @@ import Data.Generics.Schemes (everything)
 import Data.Data (Data(..),Typeable(..))
 import Control.Applicative
 
-maybeToAlter :: Alternative f => Maybe a -> f a
-maybeToAlter Nothing  = empty
-maybeToAlter (Just x) = pure x
-
 traverse1 :: (Data t, Typeable b,Alternative f)
-          => (b -> Maybe a) -> t -> f a
-traverse1 f = everything (<|>) $ mkQ empty (maybeToAlter . f)
+          => (b -> f a) -> t -> f a
+traverse1 f = everything (<|>) $ mkQ empty  f
 
 traverse2 :: (Data t, Typeable b,Alternative f) 
   => (a1 -> a2 -> a) 
-  -> (b -> Maybe a1) 
-  -> (b -> Maybe a2) 
+  -> (b -> f a1) 
+  -> (b -> f a2) 
   -> t -> f a
 traverse2 c f g = everything (<|>) $ mkQ empty s where
-  s x = maybeToAlter $ pure c <*> f x <*> g x 
+  s x = c <$> f x <*> g x 
 
 traverse3 :: (Data t, Typeable b,Alternative f) 
   => (a1 -> a2 -> a3 -> a) 
-  -> (b -> Maybe a1) 
-  -> (b -> Maybe a2) 
-  -> (b -> Maybe a3)
+  -> (b -> f a1) 
+  -> (b -> f a2) 
+  -> (b -> f a3)
   -> t -> f a
 traverse3 c f g h = everything (<|>) $ mkQ empty s where
-  s x = maybeToAlter $ pure c <*> f x <*> g x <*> h x  
+  s x = c <$> f x <*> g x <*> h x  
